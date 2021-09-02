@@ -21,14 +21,16 @@ class Detekce(QMainWindow):
         self.e = None
         self.d = None
         self.x = None
+        self.det = None
         self.initUI()
 
     def initUI(self):
-        self.setGeometry(100,100,600,620)
+        self.setGeometry(100,100,600,635)
         self.setWindowTitle("Detekce")
         self.tabulka()
-        self.menu()
+        self.menugraf()
         self.menufil()
+        self.menuDET()
         self.show()
 
     def menufil(self):
@@ -91,26 +93,39 @@ class Detekce(QMainWindow):
         fileMenu.addAction(LMS)
         fileMenu.addAction(LMF)
 
-    def menu(self):
+    def menuDET(self):
+        self.statusBar()
+        menubar = self.menuBar()
+        fileMenu = menubar.addMenu("&Detection")
+
+        ELBND = QAction(QIcon("WWW.jpg"), "ELBND", self)
+        ELBND.setShortcut("Ctrl+1")
+        ELBND.setStatusTip("Error and Learning Based Novelty Detection (ELBND)")
+        ELBND.triggered.connect(self.detELBND)
+
+        LE = QAction(QIcon("WWW.jpg"), "LE", self)
+        LE.setShortcut("Ctrl+2")
+        LE.setStatusTip("Learning Entropy (LE)")
+        LE.triggered.connect(self.detLE)
+
+        fileMenu.addAction(ELBND)
+        fileMenu.addAction(LE)
+
+    def menugraf(self):
         opfil = QAction(QIcon("WWW.jpg"), "open", self)
         opfil.setShortcut("Ctrl+O")
         opfil.setStatusTip("Open a file")
         opfil.triggered.connect(self.loading)
 
-        gra = QAction(QIcon("WWW.jpg"), "graf", self)
-        gra.setShortcut("Ctrl+g")
-        gra.setStatusTip("Make a graph")
-        gra.triggered.connect(self.grafy)
+        gra1 = QPushButton("Graf filter", self)
+        gra1.clicked.connect(self.grafyfilt)
+        gra1.resize(100, 20)
+        gra1.move(50, 560)
 
-        gra = QPushButton("Graf", self)
-        gra.clicked.connect(self.grafy)
-        gra.resize(100, 20)
-        gra.move(50, 560)
-
-        #filt = QPushButton("Filtr", self)
-        #filt.clicked.connect(self.filter())
-        #filt.resize(100, 20)
-        #filt.move(300, 560)
+        gra2 = QPushButton("Graf detekce", self)
+        gra2.clicked.connect(self.grafdet)
+        gra2.resize(100, 20)
+        gra2.move(50, 590)
 
         selbt = QPushButton("Výběr",self)
         selbt.clicked.connect(self.vyber)
@@ -121,7 +136,6 @@ class Detekce(QMainWindow):
         menubar = self.menuBar()
         fileMenu = menubar.addMenu("&Tools")
         fileMenu.addAction(opfil)
-        #fileMenu.addAction(gra)
 
     def loading(self):
         basefile = str(Path.home())
@@ -158,13 +172,9 @@ class Detekce(QMainWindow):
         try:
             p = np.reshape(U,(int(f),n))
             q = p.T
-            #print(q)
-            #print(q.shape)
-            #print(type(q))
             self.q = q
         except Exception as ex:
             print(ex)
-        #self.filterNLMS()
 
     def uprava(self):
         s = self.q
@@ -283,13 +293,28 @@ class Detekce(QMainWindow):
         self.w = w
         self.e = e
 
+    def detELBND(self):
+
+        elbnd = pa.detection.ELBND(self.w, self.e, function="max")
+        self.det = elbnd
+
+    def detLE(self):
+
+        le = pa.detection.learning_entropy(self.w, m=30, order=1)
+        self.det = le
+
     def tabulka(self):
         self.tableWidget = QTableWidget(self)
         self.tableWidget.setRowCount(20)
         self.tableWidget.setColumnCount(5)
         self.tableWidget.setGeometry(50, 50, 500, 500)
 
-    def grafy(self):
+    def grafdet(self):
+
+        plt.plot(self.det)
+        plt.show()
+
+    def grafyfilt(self):
 
         plt.plot(self.y)
         plt.plot(self.w)                #pyqtgraph
