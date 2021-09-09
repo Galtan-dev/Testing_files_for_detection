@@ -1,18 +1,25 @@
 import sys
 from PyQt5.QtWidgets import (QTableWidget,QTableWidgetItem, QWidget, QApplication, QInputDialog, QLineEdit, QFileDialog, QHBoxLayout, QVBoxLayout, QLabel, QFileDialog, QTextEdit, QAction, qApp, QDesktopWidget, QMainWindow, QWidget, QMessageBox, QToolTip, QPushButton)
-from PyQt5.QtGui import (QIcon, QFont)
-from PyQt5.QtCore import pyqtSlot
+from PyQt5.QtWidgets import *
+from PyQt5 import QtCore, QtGui
+#from PyQt5.QtGui import (QIcon, QFont)
+#from PyQt5.QtCore import pyqtSlot
+from PyQt5.QtCore import *
+from PyQt5.QtGui import *
 from pathlib import Path
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import padasip as pa
+from pyqtgraph import PlotWidget, plot
+import pyqtgraph as pg
 import math
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 
 class Detekce(QMainWindow):
     def __init__(self):
         QMainWindow.__init__(self)
+
         self.m = None
         self.q = None
 
@@ -25,13 +32,84 @@ class Detekce(QMainWindow):
         self.initUI()
 
     def initUI(self):
-        self.setGeometry(100,100,600,635)
+        self.setGeometry(100,100,700,635)
         self.setWindowTitle("Detekce")
+        #self.vnitrograf()
         self.tabulka()
         self.menugraf()
         self.menufil()
         self.menuDET()
+        #self.statusbar()
+        self.combobox()
         self.show()
+
+    #def vnitrograf(self):
+
+        #self.graphWidget = pg.PlotWidget(self)
+        #self.graphWidget.setXRange(100,500)
+        #self.graphWidget.setYRange(100,500)
+       # self.se
+        #self.graphWidget = pg.PlotWidget()
+        #self.graphWidget.setGeometry(600, 50, 500, 500)
+        #plt = pg.plot()
+
+    def combobox(self):
+        self.comboI = QComboBox(self)
+        self.comboI.addItem("Choose filter")
+        self.comboI.addItem("SSLMS")
+        self.comboI.addItem("RLS")
+        self.comboI.addItem("NSSLMS")
+        self.comboI.addItem("AP")
+        self.comboI.addItem("GNGD")
+        self.comboI.addItem("NLMF")
+        self.comboI.addItem("NLMS")
+        self.comboI.addItem("LMS")
+        self.comboI.addItem("LMF")
+        self.comboI.setGeometry(550,80,100,25)
+
+        self.comboII = QComboBox(self)
+        self.comboII.addItem("Choose detection")
+        self.comboII.addItem("LE")
+        self.comboII.addItem("ELBND")
+        self.comboII.setGeometry(550, 130, 100, 25)
+
+        self.spoust = QPushButton("Execute",self)
+        self.spoust.setGeometry(550,525,100,25)
+        self.spoust.clicked.connect(self.uzel)
+
+    def uzel(self):
+        self.vyber()
+        self.vyberfiltr()
+        self.vyberdet()
+        self.grafy()
+
+    def vyberfiltr(self):
+        filt = self.comboI.currentText()
+        if (filt == "SSLMS"):
+            self.filterSSLMS()
+        if (filt == "RLS"):
+            self.filterRLS()
+        elif (filt == "NSSLMS"):
+            self.filterNSSLMS()
+        elif (filt == "AP"):
+            self.filterAP()
+        elif (filt == "GNGD"):
+            self.filterGNGD()
+        elif (filt == "NLMF"):
+            self.filterNLMF()
+        elif (filt == "NLMS"):
+            self.filterNLMS()
+        elif (filt == "LMS"):
+            self.filterLMS()
+        elif (filt == "LMF"):
+            self.filterLMF()
+
+    def vyberdet(self):
+        det = self.comboII.currentText()
+        if (det == "LE"):
+            self.detLE()
+        elif (det == "ELBND"):
+            self.detELBND()
 
     def menufil(self):
         self.statusBar()
@@ -113,29 +191,43 @@ class Detekce(QMainWindow):
 
     def menugraf(self):
         opfil = QAction(QIcon("WWW.jpg"), "open", self)
-        opfil.setShortcut("Ctrl+O")
+        opfil.setShortcut("Ctrl+9")
         opfil.setStatusTip("Open a file")
         opfil.triggered.connect(self.loading)
 
-        gra1 = QPushButton("Graf filter", self)
-        gra1.clicked.connect(self.grafyfilt)
-        gra1.resize(100, 20)
-        gra1.move(50, 560)
+        ofiltl = QPushButton("Open a file",self)
+        ofiltl.setGeometry(550,200,100,25)
+        ofiltl.clicked.connect(self.loading)
 
-        gra2 = QPushButton("Graf detekce", self)
-        gra2.clicked.connect(self.grafdet)
-        gra2.resize(100, 20)
-        gra2.move(50, 590)
+        grafil = QAction(QIcon("WWW.jpg"), "Graph filter", self)
+        grafil.setShortcut("Ctrl+8")
+        grafil.setStatusTip("Open a graph")
+        grafil.triggered.connect(self.grafyfilt)
 
-        selbt = QPushButton("Výběr",self)
-        selbt.clicked.connect(self.vyber)
-        selbt.resize(100, 20)
-        selbt.move(200, 560)
+        gradet = QAction(QIcon("WWW.jpg"), "Graph detection", self)
+        gradet.setShortcut("Ctrl+7")
+        gradet.setStatusTip("Open a graph")
+        gradet.triggered.connect(self.grafdet)
 
-        self.statusBar()
+        vyb = QAction(QIcon("WWW.jpg"), "Selection", self)
+        vyb.setShortcut("Ctrl+6")
+        vyb.setStatusTip("Selected a column")
+        vyb.triggered.connect(self.vyber)
+
+        #self.statusBar()
         menubar = self.menuBar()
         fileMenu = menubar.addMenu("&Tools")
         fileMenu.addAction(opfil)
+        fileMenu.addAction(grafil)
+        fileMenu.addAction(gradet)
+        fileMenu.addAction(vyb)
+
+    #def statusbar(self):
+        #self.label_1 = QLabel("Status Bar", self)
+        #self.label_1.move(580, 50)
+        #self.label_1.setStyleSheet("border :5px solid blue;")
+        #self.label_1.resize(100, 150)
+        #self.show()
 
     def loading(self):
         basefile = str(Path.home())
@@ -159,6 +251,7 @@ class Detekce(QMainWindow):
                 except Exception as ex:
                     print(ex)
         self.m = m
+        self.statusBar().showMessage("Files are loaded")
 
     def vyber(self):
         alt = self.tableWidget.selectedItems()
@@ -175,7 +268,7 @@ class Detekce(QMainWindow):
             self.q = q
         except Exception as ex:
             print(ex)
-
+        self.statusBar().showMessage("Input column are selected")
     def uprava(self):
         s = self.q
         n = self.m[0]
@@ -202,6 +295,7 @@ class Detekce(QMainWindow):
         self.y = y
         self.w = w
         self.e = e
+        self.statusBar().showMessage("SSLMS filter aplicated")
 
     def filterRLS(self):
         self.uprava()
@@ -213,7 +307,7 @@ class Detekce(QMainWindow):
         self.y = y
         self.w = w
         self.e = e
-
+        self.statusBar().showMessage("RLS filter aplicated")
 
     def filterNSSLMS(self):
         self.uprava()
@@ -225,6 +319,7 @@ class Detekce(QMainWindow):
         self.y = y
         self.w = w
         self.e = e
+        self.statusBar().showMessage("NSSLMS filter aplicated")
 
     def filterAP(self):
         self.uprava()
@@ -236,6 +331,7 @@ class Detekce(QMainWindow):
         self.y = y
         self.w = w
         self.e = e
+        self.statusBar().showMessage("AP filter aplicated")
 
     def filterNLMS(self):
         self.uprava()
@@ -247,6 +343,7 @@ class Detekce(QMainWindow):
         self.y = y
         self.w = w
         self.e = e
+        self.statusBar().showMessage("NLMS filter aplicated")
 
     def filterGNGD(self):
         self.uprava()
@@ -258,7 +355,7 @@ class Detekce(QMainWindow):
         self.y = y
         self.w = w
         self.e = e
-
+        self.statusBar().showMessage("GNGD filter aplicated")
 
     def filterNLMF(self):
         self.uprava()
@@ -270,6 +367,7 @@ class Detekce(QMainWindow):
         self.y = y
         self.w = w
         self.e = e
+        self.statusBar().showMessage("NLMF filter aplicated")
 
     def filterLMS(self):
         self.uprava()
@@ -281,6 +379,7 @@ class Detekce(QMainWindow):
         self.y = y
         self.w = w
         self.e = e
+        self.statusBar().showMessage("LMS filter aplicated")
 
     def filterLMF(self):
         self.uprava()
@@ -292,22 +391,25 @@ class Detekce(QMainWindow):
         self.y = y
         self.w = w
         self.e = e
+        self.statusBar().showMessage("LMF filter aplicated")
 
     def detELBND(self):
 
         elbnd = pa.detection.ELBND(self.w, self.e, function="max")
         self.det = elbnd
+        self.statusBar().showMessage("ELBND detection aplicated")
 
     def detLE(self):
 
         le = pa.detection.learning_entropy(self.w, m=30, order=1)
         self.det = le
+        self.statusBar().showMessage("LE detection aplicated")
 
     def tabulka(self):
         self.tableWidget = QTableWidget(self)
         self.tableWidget.setRowCount(20)
         self.tableWidget.setColumnCount(5)
-        self.tableWidget.setGeometry(50, 50, 500, 500)
+        self.tableWidget.setGeometry(25, 50, 500, 500)
 
     def grafdet(self):
 
@@ -316,9 +418,30 @@ class Detekce(QMainWindow):
 
     def grafyfilt(self):
 
-        plt.plot(self.y)
-        plt.plot(self.w)                #pyqtgraph
-        plt.plot(self.e)
+        fig, axs = plt.subplots(3, 1)
+        axs[0].plot(self.e)
+        axs[1].plot(self.y)
+        axs[2].plot(self.w)
+        axs[0].grid(True)
+        axs[1].grid(True)
+        axs[2].grid(True)
+
+        fig.tight_layout()
+        plt.show()
+
+    def grafy(self):
+
+        fig, axs = plt.subplots(4, 1)
+        axs[0].plot(self.e)
+        axs[1].plot(self.y)
+        axs[2].plot(self.w)
+        axs[3].plot(self.det)
+        axs[0].grid(True)
+        axs[1].grid(True)
+        axs[2].grid(True)
+        axs[3].grid(True)
+
+        fig.tight_layout()
         plt.show()
 
     def closeEvent(self, event):
