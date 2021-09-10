@@ -29,6 +29,7 @@ class Detekce(QMainWindow):
         self.d = None
         self.x = None
         self.det = None
+        self.rl = None
         self.initUI()
 
     def initUI(self):
@@ -41,6 +42,7 @@ class Detekce(QMainWindow):
         self.menuDET()
         #self.statusbar()
         self.combobox()
+        self.lspeed()
         self.show()
 
     #def vnitrograf(self):
@@ -78,6 +80,7 @@ class Detekce(QMainWindow):
         self.spoust.clicked.connect(self.uzel)
 
     def uzel(self):
+        self.lspeedchoose()
         self.vyber()
         self.vyberfiltr()
         self.vyberdet()
@@ -285,10 +288,23 @@ class Detekce(QMainWindow):
         self.x = l.T
         self.d = f.T
 
+    def lspeed(self):
+        self.textbox = QLineEdit(self)
+        self.textbox.setGeometry(550,250,50,25)
+        self.show()
+
+    def lspeedchoose(self):
+        try:
+            speedvalue = int(self.textbox.text())
+            self.rl = speedvalue
+        except:
+            self.rl = 1
+
+
     def filterSSLMS(self):
         self.uprava()
         try:
-            f = pa.filters.FilterSSLMS(n=1, mu=0.7, w="zeros")
+            f = pa.filters.FilterSSLMS(n=1, mu=self.rl, w="zeros")
             y, e, w = f.run(self.d, self.x)
         except Exception as ex:
             print(ex)
@@ -300,7 +316,7 @@ class Detekce(QMainWindow):
     def filterRLS(self):
         self.uprava()
         try:
-            f = pa.filters.FilterRLS(n=1, mu=0.7, w="zeros")
+            f = pa.filters.FilterRLS(n=1, mu=self.rl, w="zeros")
             y, e, w = f.run(self.d, self.x)
         except Exception as ex:
             print(ex)
@@ -312,7 +328,7 @@ class Detekce(QMainWindow):
     def filterNSSLMS(self):
         self.uprava()
         try:
-            f = pa.filters.FilterNSSLMS(n=1, mu=0.7, w="zeros")
+            f = pa.filters.FilterNSSLMS(n=1, mu=self.rl, w="zeros")
             y, e, w = f.run(self.d, self.x)
         except Exception as ex:
             print(ex)
@@ -324,7 +340,7 @@ class Detekce(QMainWindow):
     def filterAP(self):
         self.uprava()
         try:
-            f = pa.filters.FilterAP(n=1, mu=0.7, w="zeros")
+            f = pa.filters.FilterAP(n=1, mu=self.rl, w="zeros")
             y, e, w = f.run(self.d, self.x)
         except Exception as ex:
             print(ex)
@@ -336,7 +352,7 @@ class Detekce(QMainWindow):
     def filterNLMS(self):
         self.uprava()
         try:
-            f = pa.filters.FilterNLMS(n=1, mu=0.7, w="zeros")
+            f = pa.filters.FilterNLMS(n=1, mu=self.rl, w="zeros")
             y, e, w = f.run(self.d, self.x)
         except Exception as ex:
             print(ex)
@@ -348,7 +364,7 @@ class Detekce(QMainWindow):
     def filterGNGD(self):
         self.uprava()
         try:
-            f = pa.filters.FilterGNGD(n=1, mu=0.7, w="zeros")
+            f = pa.filters.FilterGNGD(n=1, mu=self.rl, w="zeros")
             y, e, w = f.run(self.d, self.x)
         except Exception as ex:
             print(ex)
@@ -360,7 +376,7 @@ class Detekce(QMainWindow):
     def filterNLMF(self):
         self.uprava()
         try:
-            f = pa.filters.FilterNLMF(n=1, mu=0.7, w="zeros")
+            f = pa.filters.FilterNLMF(n=1, mu=self.rl, w="zeros")
             y, e, w = f.run(self.d, self.x)
         except Exception as ex:
             print(ex)
@@ -372,7 +388,7 @@ class Detekce(QMainWindow):
     def filterLMS(self):
         self.uprava()
         try:
-            f = pa.filters.FilterLMS(n=1, mu=0.7, w="zeros")
+            f = pa.filters.FilterLMS(n=1, mu=self.rl, w="zeros")
             y, e, w = f.run(self.d, self.x)
         except Exception as ex:
             print(ex)
@@ -384,7 +400,7 @@ class Detekce(QMainWindow):
     def filterLMF(self):
         self.uprava()
         try:
-            f = pa.filters.FilterLMF(n=1, mu=0.7, w="zeros")
+            f = pa.filters.FilterLMF(n=1, mu=self.rl, w="zeros")
             y, e, w = f.run(self.d, self.x)
         except Exception as ex:
             print(ex)
@@ -436,6 +452,12 @@ class Detekce(QMainWindow):
         axs[1].plot(self.y)
         axs[2].plot(self.w)
         axs[3].plot(self.det)
+
+        #axs[0].subtitle("Filter error for every sample")
+        #axs[1].subtitle("Output value")
+        #axs[2].subtitle("History of all weights")
+        #axs[3].subtitle("Detection values")
+
         axs[0].grid(True)
         axs[1].grid(True)
         axs[2].grid(True)
