@@ -385,11 +385,17 @@ class Detekce(QMainWindow):
 
     def filterGNGD(self):
         self.uprava()
+        print("kulový 1")
         try:
             f = pa.filters.FilterGNGD(n=int(self.f), mu=self.rl, w="zeros")
+            print("kulový2")
             y, e, w = f.run(self.d, self.x)
+            print("kulový3")
         except Exception as ex:
+            print("kulový4")
             print(ex)
+        print(y)
+        print("kulový")
         self.y = y
         self.w = w
         self.e = e
